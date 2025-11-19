@@ -74,7 +74,7 @@ const DirectorySelector: React.FC<DirectorySelectorProps> = ({ label, directorie
 
       {/* Directory List */}
       {directories.length > 0 && (
-        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {directories.map((dir, index) => (
             <div 
               key={index} 
