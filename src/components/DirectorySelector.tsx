@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Folder, X } from 'lucide-react';
+import { Folder, X, Plus, FolderOpen } from 'lucide-react';
 import { Directory } from '../types';
 
 interface DirectorySelectorProps {
@@ -10,9 +10,10 @@ interface DirectorySelectorProps {
 
 const DirectorySelector: React.FC<DirectorySelectorProps> = ({ label, directories, setDirectories }) => {
   const [newDirectory, setNewDirectory] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleAddDirectory = () => {
-    if (newDirectory) {
+    if (newDirectory && !directories.some(d => d.path === newDirectory)) {
       setDirectories([...directories, { path: newDirectory }]);
       setNewDirectory('');
     }
@@ -22,49 +23,79 @@ const DirectorySelector: React.FC<DirectorySelectorProps> = ({ label, directorie
     setDirectories(directories.filter((_, i) => i !== index));
   };
 
+  // Helper to simulate browsing (since browsers restrict direct FS access)
   const handleBrowse = () => {
-    // In a real browser environment, we would use the File System Access API
-    // For this example, we'll simulate browsing by adding a placeholder path
-    setNewDirectory('/path/to/selected/directory');
+    // In a real Electron app, this would open a native dialog
+    const mockPath = "C:/Users/User/Documents/Project_" + Math.floor(Math.random() * 1000);
+    setNewDirectory(mockPath);
   };
 
   return (
-    <div className="mb-4">
-      <label className="block text-gray-700 text-sm font-bold mb-2">{label}</label>
-      <div className="flex mb-2">
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-3">
+        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide flex items-center gap-2">
+          <FolderOpen className="w-4 h-4 text-blue-500" />
+          {label}
+        </label>
+        <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+          {directories.length} Active
+        </span>
+      </div>
+
+      {/* Input Area */}
+      <div className={`flex items-center bg-gray-50 dark:bg-gray-900/50 border rounded-xl transition-all duration-200 ${isFocused ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-gray-200 dark:border-gray-700'}`}>
+        <div className="pl-3 pr-2 text-gray-400">
+          <Folder className="w-5 h-5" />
+        </div>
         <input
-          className="shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className="flex-grow bg-transparent border-none py-3 text-gray-700 dark:text-gray-200 text-sm focus:ring-0 placeholder-gray-400"
           type="text"
-          placeholder={`Enter ${label.toLowerCase()} path`}
+          placeholder="Enter path (e.g., C:/Projects)"
           value={newDirectory}
           onChange={(e) => setNewDirectory(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAddDirectory()}
         />
         <button
           onClick={handleBrowse}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-r"
+          className="px-3 py-1.5 mr-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md transition-colors"
         >
-          <Folder className="w-5 h-5" />
+          Browse
+        </button>
+        <button
+          onClick={handleAddDirectory}
+          disabled={!newDirectory}
+          className="m-1 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <Plus className="w-4 h-4" />
         </button>
       </div>
-      <button
-        onClick={handleAddDirectory}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Add Directory
-      </button>
-      <ul className="mt-2">
-        {directories.map((dir, index) => (
-          <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded mb-1">
-            <span>{dir.path}</span>
-            <button
-              onClick={() => handleRemoveDirectory(index)}
-              className="text-red-500 hover:text-red-700"
+
+      {/* Directory List */}
+      {directories.length > 0 && (
+        <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+          {directories.map((dir, index) => (
+            <div 
+              key={index} 
+              className="group flex items-center justify-between p-2.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-lg hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
             >
-              <X className="w-4 h-4" />
-            </button>
-          </li>
-        ))}
-      </ul>
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300 font-mono truncate" title={dir.path}>
+                  {dir.path}
+                </span>
+              </div>
+              <button
+                onClick={() => handleRemoveDirectory(index)}
+                className="text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-md transition-all opacity-0 group-hover:opacity-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

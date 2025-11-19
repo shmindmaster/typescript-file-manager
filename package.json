@@ -1,16 +1,20 @@
 {
-  "name": "synapse",
+  "name": "synapse-ai-os",
   "private": true,
-  "version": "0.2.0",
+  "version": "2.0.0",
   "description": "Synapse - Turn your file system into a queryable knowledge base",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "server": "node server.js"
+    "server": "node server.js",
+    "start": "concurrently \"npm run server\" \"npm run dev\""
   },
   "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
@@ -19,6 +23,8 @@
     "path-browserify": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7",
     "textract": "^2.5.0",
     "walk": "^2.3.15"
   },
