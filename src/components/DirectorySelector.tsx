@@ -77,7 +77,7 @@ const DirectorySelector: React.FC<DirectorySelectorProps> = ({ label, directorie
         <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {directories.map((dir, index) => (
             <div 
-              key={index} 
+              key={dir.path} 
               className="group flex items-center justify-between p-2.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-lg hover:border-blue-200 dark:hover:border-blue-800 transition-colors"
             >
               <div className="flex items-center gap-3 overflow-hidden">
