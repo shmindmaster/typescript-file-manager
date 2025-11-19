@@ -2,6 +2,8 @@ export interface FileInfo {
   name: string;
   path: string;
   keywords: string[];
+  size?: number;
+  type?: string;
 }
 
 export interface KeywordConfig {

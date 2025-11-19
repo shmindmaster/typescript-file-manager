@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FolderPlus, FileText, Settings, Moon, Sun } from 'lucide-react';
+import { Settings, Moon, Sun, Cpu } from 'lucide-react';
 import KeywordSearch from './components/KeywordSearch';
-import FileList from './components/FileList';
 import ConfigurationPanel from './components/ConfigurationPanel';
 import ProgressBar from './components/ProgressBar';
 import DirectorySelector from './components/DirectorySelector';
-import WelcomeWizard from './components/WelcomeWizard';
 import ErrorLog from './components/ErrorLog';
+import SmartFileCard from './components/shared/SmartFileCard';
+import InsightDrawer from './components/shared/InsightDrawer';
 import { FileInfo, KeywordConfig, Directory, AppError } from './types';
 
 function App() {
@@ -16,11 +16,16 @@ function App() {
   const [keywordConfigs, setKeywordConfigs] = useState<KeywordConfig[]>([]);
   const [baseDirectories, setBaseDirectories] = useState<Directory[]>([]);
   const [targetDirectories, setTargetDirectories] = useState<Directory[]>([]);
-  const [showWelcomeWizard, setShowWelcomeWizard] = useState(true);
   const [errors, setErrors] = useState<AppError[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); 
   const [isScanning, setIsScanning] = useState(false);
 
+  // AI Drawer State
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'analyze' | 'chat'>('analyze');
+  const [activeFile, setActiveFile] = useState<FileInfo | null>(null);
+
+  // Persist Settings
   useEffect(() => {
     const savedConfig = localStorage.getItem('appConfig');
     if (savedConfig) {
@@ -28,13 +33,34 @@ function App() {
       setKeywordConfigs(keywordConfigs);
       setBaseDirectories(baseDirectories);
       setTargetDirectories(targetDirectories);
-      setShowWelcomeWizard(false);
+    }
+    // Initialize Dark Mode
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setDarkMode(true);
     }
   }, []);
 
   useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+  }, [darkMode]);
+
+  useEffect(() => {
     localStorage.setItem('appConfig', JSON.stringify({ keywordConfigs, baseDirectories, targetDirectories }));
   }, [keywordConfigs, baseDirectories, targetDirectories]);
+
+  // --- Actions ---
+
+  const handleAnalyze = (file: FileInfo) => {
+    setActiveFile(file);
+    setDrawerMode('analyze');
+    setDrawerOpen(true);
+  };
+
+  const handleChat = (file: FileInfo) => {
+    setActiveFile(file);
+    setDrawerMode('chat');
+    setDrawerOpen(true);
+  };
 
   const handleSearch = async () => {
     if (baseDirectories.length === 0) {
@@ -44,6 +70,7 @@ function App() {
 
     setProgress({ current: 0, total: 1 });
     setIsScanning(true);
+    setFiles([]);
 
     try {
       const response = await fetch('http://localhost:3001/api/search', {
@@ -66,21 +93,14 @@ function App() {
           const line = lines[i];
           try {
             const data = JSON.parse(line);
-            if (data.results) {
-              setFiles(data.results);
-            }
-            if (data.filesProcessed && data.totalFiles) {
-              setProgress({ current: data.filesProcessed, total: data.totalFiles });
-            }
-          } catch (e) {
-            console.error('Error parsing JSON:', e);
-          }
+            if (data.results) setFiles(prev => [...data.results]); 
+            if (data.filesProcessed) setProgress({ current: data.filesProcessed, total: data.totalFiles });
+          } catch (e) { /* Ignore partial chunks */ }
         }
-        
         partialData = lines[lines.length - 1];
       }
     } catch (error) {
-      addError('Error searching files: ' + (error as Error).message);
+      addError('Scan failed: ' + (error as Error).message);
     } finally {
       setIsScanning(false);
     }
@@ -92,7 +112,7 @@ function App() {
     );
 
     if (!matchingConfig) {
-      addError('No matching keyword configuration found for this file.');
+      addError('No automated destination found for this file type.');
       return;
     }
 
@@ -105,12 +125,11 @@ function App() {
       const result = await response.json();
       if (result.success) {
         addError(result.message, 'success');
-        handleSearch(); // Refresh the file list
       } else {
         addError(`Error: ${result.message}`);
       }
     } catch (error) {
-      addError(`Error ${action}ing file: ` + (error as Error).message);
+      addError(`Error: ${(error as Error).message}`);
     }
   };
 
@@ -118,55 +137,113 @@ function App() {
     setErrors(prev => [...prev, { message, type, timestamp: new Date() }]);
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
-
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white min-h-screen flex flex-col">
-        <header className="bg-blue-600 dark:bg-blue-800 text-white p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold flex items-center">
-              <FolderPlus className="mr-2" />
-              Advanced Keyword File Manager
-            </h1>
-            <div className="flex items-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200 font-sans">
+      
+      <InsightDrawer 
+        isOpen={drawerOpen} 
+        onClose={() => setDrawerOpen(false)} 
+        activeFile={activeFile}
+        mode={drawerMode}
+      />
+
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${drawerOpen ? 'mr-0 md:mr-96' : ''}`}>
+        {/* Header */}
+        <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-tr from-blue-600 to-cyan-500 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+                <Cpu className="text-white w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
+                  Synapse
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">AI Knowledge OS</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
               <button
-                onClick={toggleDarkMode}
-                className="mr-4 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-900"
-                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2.5 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
               <button
                 onClick={() => setShowConfig(!showConfig)}
-                className="bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-900 text-white font-bold py-2 px-4 rounded flex items-center"
+                className="flex items-center px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl hover:opacity-90 transition-opacity font-medium text-sm shadow-sm"
               >
-                <Settings className="mr-2" />
-                Configure
+                <Settings className="w-4 h-4 mr-2" />
+                Config
               </button>
             </div>
           </div>
         </header>
 
-        <main className="container mx-auto p-4 flex-grow">
-          <DirectorySelector
-            label="Base Directories"
-            directories={baseDirectories}
-            setDirectories={setBaseDirectories}
-          />
-          <DirectorySelector
-            label="Target Directories"
-            directories={targetDirectories}
-            setDirectories={setTargetDirectories}
-          />
-          <KeywordSearch onSearch={handleSearch} isScanning={isScanning} />
-          <ProgressBar current={progress.current} total={progress.total} />
-          <FileList files={files} onFileAction={handleFileAction} />
+        {/* Main Content */}
+        <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-8 space-y-8">
+          
+          {/* Configuration Zone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+               <DirectorySelector
+                label="Input Sources"
+                directories={baseDirectories}
+                setDirectories={setBaseDirectories}
+              />
+            </div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+              <DirectorySelector
+                label="Sort Destinations"
+                directories={targetDirectories}
+                setDirectories={setTargetDirectories}
+              />
+            </div>
+          </div>
+
+          {/* Scanner Zone */}
+          <div className="flex flex-col items-center justify-center space-y-6 py-4">
+            <KeywordSearch onSearch={handleSearch} isScanning={isScanning} />
+            {progress.total > 0 && (
+               <div className="w-full max-w-2xl">
+                 <ProgressBar current={progress.current} total={progress.total} />
+               </div>
+            )}
+          </div>
+
+          {/* Results Grid */}
+          {files.length > 0 && (
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                  Detected Assets <span className="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded-full text-sm">{files.length}</span>
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {files.map((file, index) => (
+                  <SmartFileCard 
+                    key={index} 
+                    file={file} 
+                    onAnalyze={handleAnalyze}
+                    onChat={handleChat}
+                    onAction={handleFileAction}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {files.length === 0 && !isScanning && (
+            <div className="text-center py-24 opacity-40">
+              <Cpu className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+              <p className="text-lg font-medium">System Idle</p>
+              <p className="text-sm">Configure directories and initiate a scan.</p>
+            </div>
+          )}
         </main>
 
+        {/* Floating Elements */}
         {showConfig && (
           <ConfigurationPanel
             onClose={() => setShowConfig(false)}
@@ -176,20 +253,7 @@ function App() {
           />
         )}
 
-        {showWelcomeWizard && (
-          <WelcomeWizard
-            onComplete={() => setShowWelcomeWizard(false)}
-            setBaseDirectories={setBaseDirectories}
-            setTargetDirectories={setTargetDirectories}
-            setKeywordConfigs={setKeywordConfigs}
-          />
-        )}
-
         <ErrorLog errors={errors} setErrors={setErrors} />
-
-        <footer className="bg-gray-200 dark:bg-gray-700 text-center p-4">
-          <p>&copy; 2024 Advanced Keyword File Manager. All rights reserved.</p>
-        </footer>
       </div>
     </div>
   );
