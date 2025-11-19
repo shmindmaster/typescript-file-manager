@@ -21,13 +21,15 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Azure AI Configuration
+const chatDeployment = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || "gpt-4o";
+const embedDeployment = process.env.AZURE_OPENAI_EMBED_DEPLOYMENT || "text-embedding-3-small";
+
 const client = new AzureOpenAI({ 
   endpoint: process.env.AZURE_OPENAI_ENDPOINT, 
   apiKey: process.env.AZURE_OPENAI_KEY, 
   apiVersion: process.env.AZURE_OPENAI_CHAT_API_VERSION || "2024-02-15-preview", 
-  deployment: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || "gpt-4o"
-});
-const embedDeployment = process.env.AZURE_OPENAI_EMBED_DEPLOYMENT || "text-embedding-3-small"; 
+  deployment: chatDeployment
+}); 
 
 // Validate Azure OpenAI credentials before initializing client
 if (!process.env.AZURE_OPENAI_ENDPOINT || !process.env.AZURE_OPENAI_KEY) {
@@ -47,7 +49,11 @@ async function loadMemory() {
     console.log(`✅ Memory Loaded: ${vectorStore.length} chunks indexed.`);
   }
 }
-loadMemory();
+
+// Initialize memory before starting server
+(async () => {
+  await loadMemory();
+})();
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increased limit for large file analysis
@@ -175,7 +181,7 @@ app.post('/api/analyze', async (req, res) => {
         { role: "system", content: "You are an intelligent file system auditor. Return JSON only." },
         { role: "user", content: prompt }
       ],
-      model: deployment,
+      model: chatDeployment,
       response_format: { type: "json_object" }
     });
 
@@ -204,7 +210,7 @@ app.post('/api/chat', async (req, res) => {
 
     const response = await client.chat.completions.create({
       messages,
-      model: deployment,
+      model: chatDeployment,
     });
 
     res.json({ success: true, reply: response.choices[0].message.content });

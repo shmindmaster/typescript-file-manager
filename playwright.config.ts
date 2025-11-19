@@ -71,6 +71,8 @@ export default defineConfig({
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
+      // Wait for Vite to be ready - it serves on port 5173
+      // The URL check will verify it's accessible
     },
   ],
 });
