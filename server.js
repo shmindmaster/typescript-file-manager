@@ -50,11 +50,6 @@ async function loadMemory() {
   }
 }
 
-// Initialize memory before starting server
-(async () => {
-  await loadMemory();
-})();
-
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increased limit for large file analysis
 
@@ -363,9 +358,14 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Synapse Neural Core running on port ${PORT}`);
-  if (process.env.NODE_ENV === 'production') {
-    console.log(`🚀 Production Mode: Serving static assets`);
-  }
-});
+// Start server after memory is loaded
+(async () => {
+  await loadMemory();
+  
+  app.listen(PORT, () => {
+    console.log(`Synapse Neural Core running on port ${PORT}`);
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`🚀 Production Mode: Serving static assets`);
+    }
+  });
+})();

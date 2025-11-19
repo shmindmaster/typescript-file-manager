@@ -140,10 +140,10 @@ function App() {
   };
 
   const handleFileAction = async (file: FileInfo, action: 'move' | 'copy') => {
-    // For Semantic Search results, we might not have 'keywords' that match rules.
-    // So we try to find matches based on file name.
+    // Find matching config: ALL keywords must be present in the filename
+    // This ensures files only match when they contain all configured keywords
     const matchingConfig = keywordConfigs.find(config => 
-      config.keywords.some(k => file.name.toLowerCase().includes(k.toLowerCase())) // Simplified matching for now
+      config.keywords.every(k => file.name.toLowerCase().includes(k.toLowerCase()))
     );
     
     if (!matchingConfig) {
