@@ -115,7 +115,6 @@ Always move client-only UI into a Client Component and import it directly in you
 
 - **TypeScript:** Use TypeScript for all code. Enable `strict` mode in `tsconfig.json`.
 - **ESLint & Prettier:** Enforce code style and linting. Use the official Next.js ESLint config.
-- **Environment Variables:** Store secrets in `.env.local`. Never commit secrets to version control.
 - **Testing:** Use Jest, React Testing Library, or Playwright. Write tests for all critical logic and components.
 - **Accessibility:** Use semantic HTML and ARIA attributes. Test with screen readers.
 - **Performance:**

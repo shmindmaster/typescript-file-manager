@@ -130,7 +130,7 @@ def count_unique_words(text: str) -> Dict[str, int]:
     """Count unique words ignoring case and punctuation."""
     if not text or not isinstance(text, str):
         raise ValueError("Text must be non-empty string")
-    
+
     words = [word.strip(".,!?").lower() for word in text.split()]
     return dict(collections.Counter(words))
 
@@ -138,14 +138,14 @@ class UserDataProcessor:
     def __init__(self, config: Dict[str, str]) -> None:
         self.config = config
         self.logger = self._setup_logger()
-    
+
     def process_user_data(self, users: List[Dict]) -> List[Dict]:
         processed = []
         for user in users:
             clean_user = self._sanitize_user_data(user)
             processed.append(clean_user)
         return processed
-    
+
     def _sanitize_user_data(self, user: Dict) -> Dict:
         # Sanitize input - assume everything is malicious
         sanitized = {
@@ -175,11 +175,11 @@ def process():
 
 ## 🔄 Research Process
 
-1. **Rapid Assessment**: 
+1. **Rapid Assessment**:
    - Use `#websearch` for initial landscape understanding
    - Use `#think` to analyze findings and plan approach
    - Use `#todos` to track progress and tasks
-2. **Library Discovery**: 
+2. **Library Discovery**:
    - Context 7 resolution as primary source
    - Web search fallback when Context 7 unavailable
 3. **Deep Dive**: Detailed documentation analysis and code pattern extraction
@@ -212,7 +212,7 @@ def process():
 # Library resolution
 context7.resolve_library_id(libraryName="pandas")
 
-# Documentation fetching  
+# Documentation fetching
 context7.get_library_docs(
     context7CompatibleLibraryID="/pandas/docs",
     topic="dataframe_operations",
@@ -343,11 +343,6 @@ def validate_email(email: str) -> bool:
     return bool(re.match(pattern, email))
 ```
 
-**Secrets Management**:
-- API keys in environment variables - **never** hardcoded
-- Use `logging` module, not `print()`
-- Don't log passwords, tokens, or user data
-- If your GitHub repo exposes secrets, you're the villain
 
 ### Version Control Like You Mean It
 

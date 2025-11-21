@@ -66,7 +66,6 @@ applyTo: '**/*.ts'
 ## External Integrations
 
 - Instantiate clients outside hot paths and inject them for testability.
-- Never hardcode secrets; load them from secure sources.
 - Apply retries, backoff, and cancellation to network or IO calls.
 - Normalize external responses and map errors to domain shapes.
 
@@ -76,16 +75,11 @@ applyTo: '**/*.ts'
 - Avoid dynamic code execution and untrusted template rendering.
 - Encode untrusted content before rendering HTML; use framework escaping or trusted types.
 - Use parameterized queries or prepared statements to block injection.
-- Keep secrets in secure storage, rotate them regularly, and request least-privilege scopes.
 - Favor immutable flows and defensive copies for sensitive data.
 - Use vetted crypto libraries only.
 - Patch dependencies promptly and monitor advisories.
 
-## Configuration & Secrets
 
-- Reach configuration through shared helpers and validate with schemas or dedicated validators.
-- Handle secrets via the project's secure storage; guard `undefined` and error states.
-- Document new configuration keys and update related tests.
 
 ## UI & UX Components
 

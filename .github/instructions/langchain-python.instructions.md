@@ -215,7 +215,6 @@ Models have a finite context window measured in tokens. When designing conversat
 
 - Use type hints and dataclasses for public APIs.
 - Validate inputs before calling LLMs or tools.
-- Load secrets from secret managers; never log secrets or unredacted model outputs.
 - Deterministic tests: mock LLMs and embedding calls.
 - Cache embeddings and frequent retrieval results.
 - Observability: log request_id, model name, latency, and sanitized token counts.

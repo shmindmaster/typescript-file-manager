@@ -40,15 +40,6 @@ applyTo: '**/azure-pipelines.yml, **/azure-pipelines*.yml, **/*.pipeline.yml'
 - Use test impact analysis when available to optimize test execution
 - Fail fast on test failures to provide quick feedback
 
-## Security Considerations
-
-- Use Azure Key Vault for sensitive configuration and secrets
-- Implement proper secret management with variable groups
-- Use service connections with minimal required permissions
-- Enable security scans (dependency vulnerabilities, static analysis)
-- Implement approval gates for production deployments
-- Use managed identities when possible instead of service principals
-
 ## Deployment Strategies
 
 - Implement proper environment promotion (dev → staging → production)
@@ -63,7 +54,6 @@ applyTo: '**/azure-pipelines.yml, **/azure-pipelines*.yml, **/*.pipeline.yml'
 - Use variable groups for shared configuration across pipelines
 - Implement runtime parameters for flexible pipeline execution
 - Use conditional variables based on branches or environments
-- Secure sensitive variables and mark them as secrets
 - Document variable purposes and expected values
 - Use variable templates for complex variable logic
 
@@ -135,13 +125,13 @@ stages:
             displayName: 'Use .NET SDK'
             inputs:
               version: '8.x'
-          
+
           - task: DotNetCoreCLI@2
             displayName: 'Restore dependencies'
             inputs:
               command: 'restore'
               projects: '**/*.csproj'
-          
+
           - task: DotNetCoreCLI@2
             displayName: 'Build application'
             inputs:

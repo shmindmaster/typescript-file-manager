@@ -29,7 +29,6 @@ Use Terraform modules to group reusable infrastructure components. For any resou
 - **Parameterize** all configurable values using variables with types and descriptions
 - **Provide default values** where appropriate for optional variables
 - **Use outputs** to expose key resource attributes for other modules or user reference
-- **Mark sensitive values** accordingly to protect secrets
 
 ## 5. Provider Selection (AzureRM vs AzAPI)
 

@@ -46,7 +46,6 @@ applyTo: '**/*.bicep'
 
 ## Security
 
--   Never include secrets or keys in outputs
 -   Use resource properties directly in outputs (e.g., storageAccount.properties.primaryEndpoints)
 
 ## Documentation

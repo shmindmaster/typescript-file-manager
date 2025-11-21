@@ -55,7 +55,6 @@ For development of modules, especially Azure Verified Modules, see [azure-verifi
 
 **Security:**
 
-- MUST NEVER store secrets in Terraform files or state
 - MUST avoid overly permissive IAM roles or network rules
 - MUST NOT disable security features for convenience
 - MUST NOT use default passwords or keys
@@ -107,22 +106,10 @@ Follow AVM-aligned coding standards in solution code to maintain consistency:
 - **Dynamic blocks**: Use dynamic blocks for optional nested objects where appropriate (per TFNFR12), and leverage `coalesce` or `try` functions for default values (per TFNFR13).
 - **Code organization**: Consider using `locals.tf` specifically for local values (per TFNFR31) and ensure precise typing for locals (per TFNFR33).
 
-## 6. Secrets
-
-The best secret is one that does not need to be stored.  e.g. use Managed Identities rather than passwords or keys.
-
-Use `ephemeral` secrets with write-only parameters when supported (Terraform v1.11+) to avoid storing secrets in state files. Consult module documentation for availability.
-
-Where secrets are required, store in Key Vault unless directed to use a different service.
-
-Never write secrets to local filesystems or commit to git.
-
-Mark sensitive values appropriately, isolate them from other attributes, and avoid outputting sensitive data unless absolutely necessary. Follow TFNFR19, TFNFR22, and TFNFR23.
 
 ## 7. Outputs
 
 - **Avoid unnecessary outputs**, only use these to expose information needed by other configurations.
-- Use `sensitive = true` for outputs containing secrets
 - Provide clear descriptions for all outputs
 
 ```hcl
@@ -151,7 +138,7 @@ locals {
     Owner       = var.owner
     CreatedBy   = "terraform"
   }
-  
+
   resource_name_prefix = "${var.project_name}-${var.environment}"
   location_short       = substr(var.location, 0, 3)
 }
@@ -175,7 +162,7 @@ Use a consistent folder structure for Terraform configurations.
 
 Use tfvars to modify environmental differences. In general, aim to keep environments similar whilst cost optimising for non-production environments.
 
-Antipattern - branch per environment, repository per environment, folder per environment - or similar layouts that make it hard to test the root folder logic between environments.  
+Antipattern - branch per environment, repository per environment, folder per environment - or similar layouts that make it hard to test the root folder logic between environments.
 
 Be aware of tools such as Terragrunt which may influence this design.
 

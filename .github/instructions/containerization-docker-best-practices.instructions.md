@@ -292,12 +292,10 @@ CMD ["node", "dist/main.js"]
     - **Runtime Configuration:** Use environment variables for configuration that varies between environments (databases, API endpoints, feature flags).
     - **Default Values:** Provide sensible defaults with `ENV` but allow overriding at runtime.
     - **Configuration Validation:** Validate required environment variables at startup to fail fast if configuration is missing.
-    - **Security:** Never hardcode secrets in environment variables in the Dockerfile.
 - **Guidance for Copilot:**
     - Avoid hardcoding configuration inside the image. Use `ENV` for default values, but allow overriding at runtime.
     - Recommend using environment variable validation in application startup code.
     - Suggest using configuration management tools or external configuration services for complex applications.
-    - Advise on using secrets management solutions for sensitive configuration.
 - **Example (Environment Variable Best Practices):**
 ```dockerfile
 # Set default values
@@ -434,25 +432,13 @@ RUN setcap -r /usr/bin/node
 ```
 
 ### **6. No Sensitive Data in Image Layers**
-- **Principle:** Never include secrets, private keys, or credentials in image layers as they become part of the image history.
 - **Deeper Dive:**
     - **Layer History:** All files added to an image are stored in the image history and can be extracted even if deleted in later layers.
     - **Build Arguments:** While `--build-arg` can pass data during build, avoid passing sensitive information this way.
-    - **Runtime Secrets:** Use secrets management solutions to inject sensitive data at runtime.
-    - **Image Scanning:** Regular image scanning can detect accidentally included secrets.
 - **Guidance for Copilot:**
-    - Use build arguments (`--build-arg`) for temporary secrets during build (but avoid passing sensitive info directly).
-    - Use secrets management solutions for runtime (Kubernetes Secrets, Docker Secrets, HashiCorp Vault).
-    - Recommend scanning images for accidentally included secrets.
-    - Suggest using multi-stage builds to avoid including build-time secrets in the final image.
-- **Anti-pattern:** `ADD secrets.txt /app/secrets.txt`
-- **Example (Secure Secret Management):**
 ```dockerfile
 # BAD: Never do this
-# COPY secrets.txt /app/secrets.txt
-
-# GOOD: Use runtime secrets
-# The application should read secrets from environment variables or mounted files
+FROM node:18-alpine
 CMD ["node", "dist/main.js"]
 ```
 
@@ -640,7 +626,6 @@ spec:
 - [ ] Is `CMD` and/or `ENTRYPOINT` used correctly?
 - [ ] Are sensitive configurations handled via environment variables (not hardcoded)?
 - [ ] Is a `HEALTHCHECK` instruction defined?
-- [ ] Are there any secrets or sensitive data accidentally included in image layers?
 - [ ] Are there static analysis tools (Hadolint, Trivy) integrated into CI?
 
 ## Troubleshooting Docker Builds & Runtime
@@ -678,4 +663,4 @@ Effective containerization with Docker is fundamental to modern DevOps. By follo
 
 ---
 
-<!-- End of Containerization & Docker Best Practices Instructions --> 
+<!-- End of Containerization & Docker Best Practices Instructions -->
